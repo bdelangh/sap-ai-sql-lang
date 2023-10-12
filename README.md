@@ -8,7 +8,7 @@ This blog assumes the SAP data has been extracted towards a SQL table in Azure. 
 
 To enable openAI to know which data is available, we need to provide information from the data dictionary. We can do this ourselves by reading out the available tables from the data dictionary and providing it as an input for the openAI prompt. 
 
-We can use a tool like [langChain](https://docs.langchain.com/docs/) which executes this step automatically for us.
+We can use a tool like [LangChain](https://docs.langchain.com/docs/) which executes this step automatically for us.
 
 Since in the end we want to make the NL to SQL functionality available in a chatbot, this functionality is built as an Azure Function which can be called by the ChatBot.
 
@@ -74,13 +74,17 @@ return json.dumps(responseJSON)
 ```
 
 As a test, let's try the following question : 
+
 ```
 What is the average difference in days between BillingDocumentDate and PaymentDate?
 ```
+
 Generated SQL Statement:
+
 ```sql
 SELECT AVG(DATEDIFF(day, SalesOrderHeaders.BILLINGDOCUMENTDATE, Payments.PaymentDate)) AS avg_days_diff FROM SalesOrderHeaders JOIN Payments ON SalesOrderHeaders.SALESDOCUMENT = Payments.SalesOrderNr
 ```
+
 Notice that openAI retrieved the tables and fields to join on. 
 This SQL Statement can then be launched on the database.
 
@@ -95,7 +99,7 @@ As a final response this results in :
 You can verify the response be executing the SQL Statement directly against the DB.
 
 # Using LangChain
-LangChain makes the whole simpler for us. We just need to point it to our database.
+[LangChain](https://docs.langchain.com/docs/) makes the whole simpler for us. We just need to point it to our database.
 
 ```python
 def db_instance():
@@ -105,14 +109,14 @@ def db_instance():
     db_instance = SQLDatabase.from_uri(conn_str)
     return db_instance
 ```
-Create a llm
+Create a OpenAI Model (LLM - Large Language Model)
 
 ```python
 logging.info("Creating Large Language Model")
 llm = AzureOpenAI(deployment_name="text-davinci-003", model_name="text-davinci-003") # replace with your details
 ```
 
-And then create an executor based on the DB connection and the creatd LLM:
+And then create an executor based on the DB connection and the created openAI model:
 
 ```python
 # LangChain Agent
@@ -220,4 +224,4 @@ Final Answer: The average difference between payment date and billing document d
 > Finished chain.
 
 ```
-Note that langchain itself read out the data dictionary. You can also nicely follow the thought chain Langchain is going through to find the answer.
+Note that langchain itself reads out the data dictionary. You can also nicely follow the thought chain Langchain is going through to find the answer.
